@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Artium Icon</title>
+  <defs>
+    <mask id="ar-cutout">
+      <rect width="120" height="120" rx="24" fill="#fff" />
+      <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, 'Times New Roman', serif" font-size="68" font-weight="600" letter-spacing="-2" fill="#000">Ar</text>
+    </mask>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="#05060C" mask="url(#ar-cutout)" />
+</svg>

@@ -1,0 +1,122 @@
+.section-editor {
+  transition: all 0.3s ease;
+  border-left: 2px solid transparent;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: var(--shadow);
+}
+
+.section-editor:hover {
+  box-shadow: var(--shadow-soft);
+  border-color: rgba(79, 140, 255, 0.35);
+  border-left-color: rgba(79, 140, 255, 0.65);
+  transform: translateY(-3px);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.section-header h3 {
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  flex: 1;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.section-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-sm {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8rem;
+}
+
+.section-content {
+  line-height: 1.75;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+.section-content p {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.section-content p:last-child {
+  margin-bottom: 0;
+}
+
+.section-content ul,
+.section-content ol {
+  margin: 0 0 1rem 1.25rem;
+  padding-left: 1.25rem;
+}
+
+.section-content li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.section-content li:last-child {
+  margin-bottom: 0;
+}
+
+.editing-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.heading-input {
+  font-size: 1.35rem;
+  font-weight: 600;
+  padding: 0.6rem 0.75rem;
+}
+
+.content-textarea {
+  min-height: 200px;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+  }
+  
+  .section-actions {
+    width: 100%;
+  }
+  
+  .section-actions button {
+    flex: 1;
+  }
+  
+  .editor-actions {
+    flex-direction: column;
+  }
+  
+  .editor-actions button {
+    width: 100%;
+  }
+}
