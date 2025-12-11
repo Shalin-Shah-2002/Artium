@@ -3,6 +3,7 @@ import SectionEditor from './SectionEditor';
 import ApiKeyInfo from './ApiKeyInfo';
 import { useAuth } from '../context/AuthContext';
 import { buildMarkdownFromArticle, buildHtmlFromArticle } from '../utils/articleFormatting';
+import { apiUrl } from '../utils/apiConfig';
 import './GeneratorPage.css';
 
 function GeneratorPage({ editingArticle, onClearEdit }) {
@@ -144,7 +145,7 @@ function GeneratorPage({ editingArticle, onClearEdit }) {
         .map(t => t.trim())
         .filter(t => t.length > 0);
 
-      const response = await fetch('/api/generate', {
+      const response = await fetch(apiUrl('/api/generate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

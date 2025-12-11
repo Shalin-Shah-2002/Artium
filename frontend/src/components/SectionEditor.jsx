@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { parseContentBlocks } from '../utils/articleFormatting';
+import { apiUrl } from '../utils/apiConfig';
 import './SectionEditor.css';
 
 const renderInlineSegments = (segments = []) =>
@@ -43,7 +44,7 @@ function SectionEditor({ section, apiKey, article, onUpdate }) {
     setIsRegenerating(true);
 
     try {
-      const response = await fetch('/api/section/regenerate', {
+      const response = await fetch(apiUrl('/api/section/regenerate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

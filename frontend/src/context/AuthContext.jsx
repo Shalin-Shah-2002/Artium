@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { apiUrl } from '../utils/apiConfig';
 
 const AuthContext = createContext(null);
 
@@ -27,7 +28,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const refreshUser = useCallback(async (tokenValue) => {
-    const response = await fetch('/api/auth/me', {
+    const response = await fetch(apiUrl('/api/auth/me'), {
       headers: {
         Authorization: `Bearer ${tokenValue}`,
       },
@@ -54,7 +55,7 @@ export function AuthProvider({ children }) {
 
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch(apiUrl('/api/auth/me'), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -89,7 +90,7 @@ export function AuthProvider({ children }) {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -117,7 +118,7 @@ export function AuthProvider({ children }) {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(apiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
@@ -148,7 +149,9 @@ export function AuthProvider({ children }) {
     const headers = new Headers(init.headers || {});
     headers.set('Authorization', `Bearer ${token}`);
 
-    const response = await fetch(input, { ...init, headers });
+    const target = typeof input === 'string' ? apiUrl(input) : input;
+
+    const response = await fetch(target, { ...init, headers });
 
     if (response.status === 401) {
       logout();
