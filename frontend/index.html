@@ -5,6 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="/artium-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Artium — Medium-ready Article Studio</title>
+    <script>
+      // Error logging for debugging
+      window.addEventListener('error', (e) => {
+        console.error('Global error:', e.error);
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
