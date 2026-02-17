@@ -6,6 +6,12 @@ from pymongo.database import Database
 import certifi
 
 
+
+
+
+
+
+
 load_dotenv()
 
 def get_db() -> Database:
