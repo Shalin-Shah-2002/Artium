@@ -8,6 +8,11 @@ from routes.auth import router as auth_router
 
 app = FastAPI(title="AI Article Creator API", version="1.0.0")
 
+
+
+
+
+
 # Configure CORS for local dev plus optional overrides
 default_origins = ["http://localhost:5173", "http://localhost:3000"]
 
