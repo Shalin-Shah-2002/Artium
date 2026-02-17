@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: artium-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DB=${MONGODB_DB:-ai_article_creator}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    networks:
+      - artium-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: artium-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-changeme}
+      - MONGO_INITDB_DATABASE=${MONGODB_DB:-ai_article_creator}
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    restart: unless-stopped
+    networks:
+      - artium-network
+
+networks:
+  artium-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  mongodb_config:
