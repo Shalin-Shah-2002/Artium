@@ -10,7 +10,7 @@ def _call_gemini_rest_api(api_key: str, prompt: str, max_tokens: int = 8192) -> 
     Call Gemini API using REST endpoint directly.
     This bypasses SDK limitations and works better with proxies.
     """
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     
     headers = {
         "Content-Type": "application/json"
