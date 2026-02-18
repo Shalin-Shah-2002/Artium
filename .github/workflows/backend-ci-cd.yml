@@ -81,16 +81,18 @@ jobs:
             docker stop artium-backend || true
             docker rm artium-backend || true
             
-            # Run new container
+            # Run new container with proxy support
             docker run -d \
               --name artium-backend \
               --restart unless-stopped \
-              -p 8000:8000 \
+              --network host \
               -e MONGODB_URI="${{ secrets.MONGODB_URI }}" \
               -e MONGODB_DB="${{ secrets.MONGODB_DB }}" \
               -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
+              -e HTTPS_PROXY="socks5://127.0.0.1:40000" \
+              -e HTTP_PROXY="socks5://127.0.0.1:40000" \
               ${{ env.DOCKER_IMAGE }}:latest
             
             # Clean up old images

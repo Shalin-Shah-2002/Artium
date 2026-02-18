@@ -1,7 +1,75 @@
 import json
+import os
+import requests
 from typing import Dict, Any, List
 from fastapi import HTTPException
 import google.generativeai as genai
+
+def _call_gemini_rest_api(api_key: str, prompt: str, max_tokens: int = 8192) -> str:
+    """
+    Call Gemini API using REST endpoint directly.
+    This bypasses SDK limitations and works better with proxies.
+    """
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}"
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "contents": [{
+            "parts": [{
+                "text": prompt
+            }]
+        }],
+        "generationConfig": {
+            "temperature": 0.7,
+            "topP": 0.95,
+            "topK": 40,
+            "maxOutputTokens": max_tokens,
+        }
+    }
+    
+    # Get proxy settings from environment if available
+    proxies = {}
+    if os.environ.get("HTTPS_PROXY"):
+        proxies["https"] = os.environ.get("HTTPS_PROXY")
+    if os.environ.get("HTTP_PROXY"):
+        proxies["http"] = os.environ.get("HTTP_PROXY")
+    
+    try:
+        response = requests.post(
+            url, 
+            headers=headers, 
+            json=payload, 
+            proxies=proxies if proxies else None,
+            timeout=120
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            if "candidates" in result and len(result["candidates"]) > 0:
+                content = result["candidates"][0]["content"]["parts"][0]["text"]
+                return content
+            else:
+                raise Exception("No content in Gemini response")
+        elif response.status_code == 400:
+            error_data = response.json()
+            error_msg = error_data.get("error", {}).get("message", "Unknown error")
+            if "location" in error_msg.lower() or "region" in error_msg.lower():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Geographic restriction detected. Solutions: 1) Use VPN (connect to US/EU) 2) Set proxy: export HTTPS_PROXY=http://proxy:port 3) Deploy backend in supported region. More info: https://ai.google.dev/gemini-api/docs/available-regions"
+                )
+            raise HTTPException(status_code=400, detail=error_msg)
+        elif response.status_code == 401 or response.status_code == 403:
+            raise HTTPException(status_code=401, detail="Invalid Gemini API key")
+        elif response.status_code == 429:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded")
+        else:
+            raise HTTPException(status_code=response.status_code, detail=f"API error: {response.text}")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Network error calling Gemini API: {str(e)}")
 
 def generate_article_with_gemini(
     api_key: str,
@@ -28,11 +96,6 @@ def generate_article_with_gemini(
         raise HTTPException(status_code=400, detail="Missing Gemini API key.")
     
     try:
-        # Configure Gemini with user's API key
-        genai.configure(api_key=api_key)
-        # Use the latest Gemini 2.5 Flash model
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
         # Build the prompt
         tone_text = tone or "neutral and informative"
         audience_text = f" for {audience}" if audience else ""
@@ -82,10 +145,8 @@ Requirements:
 - Output ONLY valid JSON—no markdown code fences, no explanations, no additional commentary.
 """
 
-        
-        # Generate content
-        response = model.generate_content(prompt)
-        response_text = response.text.strip()
+        # Use REST API for better proxy/region support
+        response_text = _call_gemini_rest_api(api_key, prompt, max_tokens=8192)
         
         # Clean up response if it's wrapped in markdown code blocks
         if response_text.startswith("```json"):
@@ -114,24 +175,19 @@ Requirements:
         
         return article_data
         
+    except HTTPException:
+        # Re-raise HTTPExceptions from _call_gemini_rest_api
+        raise
     except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=500, 
             detail=f"Failed to parse Gemini response as JSON: {str(e)}"
         )
     except Exception as e:
-        error_message = str(e)
-        
-        # Check for specific API errors
-        if "API_KEY_INVALID" in error_message or "invalid api key" in error_message.lower():
-            raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
-        elif "quota" in error_message.lower() or "rate limit" in error_message.lower():
-            raise HTTPException(status_code=429, detail="Rate limited by Gemini API.")
-        else:
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Failed to generate article: {error_message}"
-            )
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to generate article: {str(e)}"
+        )
 
 
 def regenerate_section_with_gemini(
@@ -161,9 +217,6 @@ def regenerate_section_with_gemini(
         if not section:
             raise HTTPException(status_code=404, detail="Section not found.")
         
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
         # Build context and prompt
         overrides = prompt_overrides or {}
         tone = overrides.get("tone", article.get("tone", "neutral"))
@@ -182,22 +235,18 @@ Tone: {tone}
 
 Rewrite this section to be more engaging and informative. Return ONLY the new content text, no JSON, no markdown code blocks, just the paragraph text."""
         
-        response = model.generate_content(prompt)
-        new_content = response.text.strip()
+        # Use REST API for better proxy/region support
+        new_content = _call_gemini_rest_api(api_key, prompt, max_tokens=4096)
         
         # Return updated section
         return {
             "id": section_id,
             "heading": section.get("heading"),
-            "content": new_content,
+            "content": new_content.strip(),
             "order": section.get("order")
         }
         
     except HTTPException:
         raise
     except Exception as e:
-        error_message = str(e)
-        if "API_KEY_INVALID" in error_message or "invalid api key" in error_message.lower():
-            raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
-        else:
-            raise HTTPException(status_code=500, detail=f"Failed to regenerate section: {error_message}")
+        raise HTTPException(status_code=500, detail=f"Failed to regenerate section: {str(e)}")
