@@ -32,10 +32,15 @@ def _call_gemini_rest_api(api_key: str, prompt: str, max_tokens: int = 8192) -> 
     
     # Get proxy settings from environment if available
     proxies = {}
-    if os.environ.get("HTTPS_PROXY"):
-        proxies["https"] = os.environ.get("HTTPS_PROXY")
-    if os.environ.get("HTTP_PROXY"):
-        proxies["http"] = os.environ.get("HTTP_PROXY")
+    https_proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or os.environ.get("ALL_PROXY") or os.environ.get("all_proxy")
+    http_proxy = os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy") or os.environ.get("ALL_PROXY") or os.environ.get("all_proxy")
+    
+    if https_proxy:
+        proxies["https"] = https_proxy
+        proxies["http"] = https_proxy  # Use HTTPS proxy for both
+    elif http_proxy:
+        proxies["http"] = http_proxy
+        proxies["https"] = http_proxy  # Use HTTP proxy for both
     
     try:
         response = requests.post(
